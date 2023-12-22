@@ -13,18 +13,17 @@ class Produit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code_produit', 'quantite', 'prix_unitaire', 'description', 'discount_id', 'categorie_id'];
+    protected $fillable = ['nom','image','code_produit', 'quantite', 'prix_unitaire', 'description', 'discount_id', 'categorie_id'];
 
     public function commandes()
     {
-        return $this->belongsToMany(Commande::class, 'commande_produit', 'produit_id', 'commande_id')
-            ->withPivot('quantity', 'price');
+        return $this->belongsToMany(Commande::class, 'commande_produit')
+            ->withPivot('produit_id', 'commande_id','quantity', 'price');
     }
 
     public function fournisseurs()
     {
-        return $this->belongsToMany(Fournisseur::class, 'fournisseur_produit')->withPivot('fournisseur_id', 'produit_id', 'qte_entree', 'date_entree')
-            ->withPivot('quantity', 'price');
+        return $this->belongsToMany(Fournisseur::class, 'fournisseur_produit')->withPivot('fournisseur_id', 'produit_id', 'qte_entree', 'date_entree');
     }
     public function packs()
     {

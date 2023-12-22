@@ -17,7 +17,7 @@ class ClientController extends Controller
      */
     public function index()
     {
-        $clients = Client::paginate(10);
+        $clients = Client::paginate(5);
         if($clients->count()>0){
             $response = [
                 'perPage' => $clients->perPage(),
@@ -28,7 +28,7 @@ class ClientController extends Controller
             ];
             $data = [
                 'status'=>"200",
-                'data'=>$response
+                'clients'=>$response
             ];
             return response()->json($data, 200);
         }else{
@@ -94,7 +94,7 @@ class ClientController extends Controller
             if ($clientSaved) {
                 return response()->json([
                     'status' => 200,
-                    'produit' => $clientSaved
+                    'client' => $clientSaved
                 ], 200);
                 // return redirect('/produits')->with('success', "le produit s'est ajouté avec succès");
             } else {
@@ -117,7 +117,7 @@ class ClientController extends Controller
      */
     public function show($column, $param){
 
-        $existingClients =Client::where($column, 'LIKE', "%$param%")->paginate(10);
+        $existingClients =Client::where($column, 'LIKE', "%$param%")->paginate(5);
 
         if (!$existingClients) {
             return response()->json([
@@ -135,7 +135,34 @@ class ClientController extends Controller
             return response()->json([
                 'status' => 200,
                 'Message' => "La recherche par $column",
-                'data' => $response
+                'client' => $response
+            ], 200);
+        }
+    }
+    public function show_two($column1, $param1, $column2, $param2) {
+        $existingClients = Client::where(function ($query) use ($column1, $param1, $column2, $param2) {
+            $query->where($column1, 'LIKE', "%$param1%")
+                ->orWhere($column2, 'LIKE', "%$param2%");
+        })->paginate(5);
+
+        if (!$existingClients->count()) {
+            return response()->json([
+                'status' => 404,
+                'message' => "Aucun client trouvé."
+            ], 404);
+        } else {
+            $response = [
+                'perPage' => $existingClients->perPage(),
+                'currentPage' => $existingClients->currentPage(),
+                'totalCount' => $existingClients->total(),
+                'totalPages' => $existingClients->lastPage(),
+                'data' => $existingClients->items(),
+            ];
+
+            return response()->json([
+                'status' => 200,
+                'message' => "La recherche par $column1 et $column2",
+                'client' => $response
             ], 200);
         }
     }
@@ -188,10 +215,12 @@ class ClientController extends Controller
             ], 404);
         }else{
             $existingClient->update($request->all());
-            return response()->json([
-                'status' => 404,
-                'data' => "Le client est modifié avec succés"
-            ], 404);
+
+            $response = [
+                "status" => 200,
+                "data" =>$existingClient
+            ];
+            return response()->json($response, 200);
         }
 //        $client = Client::findOrFail($id);
 //

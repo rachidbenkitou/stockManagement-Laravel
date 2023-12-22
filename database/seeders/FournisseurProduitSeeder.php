@@ -21,13 +21,20 @@ class FournisseurProduitSeeder extends Seeder
 
         // Attacher des produits à des fournisseurs
         foreach ($fournisseurs as $fournisseur) {
-            $fournisseur->produits()->attach(
+            $fournisseur->produits()->syncWithPivotValues(
                 $produits->random(rand(1, 5))->pluck('id')->toArray(),
                 [
                     'qte_entree' => rand(1, 100),
                     'date_entree' => now(),
-                ]
+                ],
+                false  // Utilisez 'false' pour ne pas détacher les autres produits
             );
+
+            // Mettez à jour la quantité totale du produit
+            foreach ($fournisseur->produits as $produit) {
+                $produit->quantite += $produit->pivot->qte_entree;
+                $produit->save();
+            }
         }
     }
 }

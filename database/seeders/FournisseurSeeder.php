@@ -20,7 +20,7 @@ class FournisseurSeeder extends Seeder
         DB::table('fournisseur_produit')->truncate();
         DB::table('fournisseurs')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $numberOfRecords= 50;
+        $numberOfRecords= 10;
         $faker = Faker::create();
         for ($i = 0; $i < $numberOfRecords; $i++) {
             Fournisseur::create([

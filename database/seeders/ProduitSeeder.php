@@ -25,13 +25,15 @@ class ProduitSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         $categories = Categorie::all();
         $faker = Faker::create();
-        $numberOfRecords= 50;
+        $numberOfRecords= 10;
         for ($i = 0; $i < $numberOfRecords; $i++) {
             $produit = Produit::create([
                 'code_produit' => $faker->unique()->ean13,
-                'quantite' => $faker->numberBetween(5, 100),
+                'quantite' => 0,
                 'prix_unitaire' => $faker->randomFloat(2, 10, 100),
                 'description' => $faker->sentence,
+                'nom' => $faker->word,
+                'image' => $faker->imageUrl(),
             ]);
             $produit->categorie()->associate($categories->random());
             $produit->save();

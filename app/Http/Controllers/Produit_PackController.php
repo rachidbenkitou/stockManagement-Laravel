@@ -15,7 +15,26 @@ class Produit_PackController extends Controller
      */
     public function index()
     {
-        //
+        $existingPacksProduits = Pack::with('produits')
+            ->paginate(8);
+        if (!$existingPacksProduits) {
+            return response()->json([
+                'status' => 404,
+                'Message' => "Pack non trouvé."
+            ], 404);
+        } else {
+            $response = [
+                'perPage' => $existingPacksProduits->perPage(),
+                'currentPage' => $existingPacksProduits->currentPage(),
+                'totalCount' => $existingPacksProduits->total(),
+                'totalPages' => $existingPacksProduits->lastPage(),
+                'data' => $existingPacksProduits->items(),
+            ];
+            return response()->json([
+                'status' => 200,
+                'packs' => $response
+            ], 200);
+        }
     }
 
     /**
@@ -36,22 +55,35 @@ class Produit_PackController extends Controller
      */
     public function store(Request $request)
     {
-
-
         // Récupérez le pack existant
         $pack = Pack::findOrFail($request->pack_id);
 
-        // Attachez les produits au pack
+        // Limitez le nombre maximal de produits attachés au pack
+        $maxProduits = $pack->nbrProduits;; // Définissez la limite souhaitée
+
+        // Vérifiez le nombre actuel de produits attachés au pack
+        $nombreProduitsActuel = $pack->produits()->count();
+
+        // Si le nombre actuel atteint la limite, renvoyez une réponse d'erreur
+        if ($nombreProduitsActuel >= $maxProduits) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'La limite maximale de produits dans le pack est atteinte.'
+            ], 400);
+        }
+
+        // Si la limite n'est pas atteinte, attachez le nouveau produit au pack
         $produit = $request->input('produit_id');
-        $qte = $request->input('qte');
-
-
-
-        $pack->produits()->attach($produit, ['qte' => $qte]);
+        $savedPack = $pack->produits()->attach($produit);
 
         // Retournez une réponse JSON en cas de succès
-        return response()->json(['message' => 'Les produits ont été ajoutés au pack avec succès.'], 200);
+        $updatedPack = Pack::with('produits')->find($request->pack_id);
+        return response()->json([
+            'status' => 200,
+            'pack' => $updatedPack
+        ], 200);
     }
+
 
     /**
      * Display the specified resource.
@@ -63,7 +95,7 @@ class Produit_PackController extends Controller
     {
         $existingPacksProduits = Pack::with('produits')
             ->where($column, 'LIKE', "%$param%")
-            ->paginate(10);
+            ->paginate(8);
         if (!$existingPacksProduits) {
             return response()->json([
                 'status' => 404,
@@ -80,7 +112,7 @@ class Produit_PackController extends Controller
             return response()->json([
                 'status' => 200,
                 'Message' => "La recherche par $column",
-                'data' => $response
+                'packs' => $response
             ], 200);
         }
     }

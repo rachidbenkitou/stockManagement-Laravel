@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::create('produit_pack', function (Blueprint $table) {
             $table->id();
-            $table->integer('qte');
             $table->unsignedBiginteger('pack_id');
             $table->foreign('pack_id')->references('id')
                 ->on('packs')->onDelete('cascade');

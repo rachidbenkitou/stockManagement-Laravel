@@ -15,7 +15,7 @@ class FournisseurController extends Controller
      */
     public function index()
     {
-        $fournisseurs = Fournisseur::paginate(10);
+        $fournisseurs = Fournisseur::paginate(5);
         if ($fournisseurs->count() > 0) {
             $response = [
                 'perPage' => $fournisseurs->perPage(),
@@ -26,7 +26,7 @@ class FournisseurController extends Controller
             ];
             $data = [
                 'status' => "200",
-                'produits' => $response
+                'fournisseur' => $response
             ];
             return response()->json($data, 200);
         } else {
@@ -36,7 +36,22 @@ class FournisseurController extends Controller
             ], 404);
         }
     }
-
+    public function getAll()
+    {
+        $fournisseurs = Fournisseur::all();
+        if ($fournisseurs->count() > 0) {
+            $data = [
+                'status' => "200",
+                'fournisseur' => $fournisseurs
+            ];
+            return response()->json($data, 200);
+        } else {
+            return response()->json([
+                'status' => "404",
+                'message' => "Aucun enregistrement trouvé"
+            ], 404);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -68,7 +83,7 @@ class FournisseurController extends Controller
             $response = [
                 'status' => 422,
                 "message" => "Validation échouée",
-                'les erreurs' => $validators->errors()
+                'erreurs' => $validators->errors()
             ];
             return response()->json($response, 422);
         }
@@ -104,11 +119,11 @@ class FournisseurController extends Controller
      */
     public function show($column, $param)
     {
-        $existingFournisseurs = Fournisseur::where($column, 'LIKE', "%$param%")->paginate(10);
+        $existingFournisseurs = Fournisseur::where($column, 'LIKE', "%$param%")->paginate(5);
 
-        if ($existingFournisseurs->count() == 0) {
+        if (!$existingFournisseurs) {
             $response = [
-                'status' => 500,
+                'status' => 404,
                 'message' => 'Aucun enregistrement trouvé.'
             ];
             return response()->json($response, 404);
@@ -123,7 +138,7 @@ class FournisseurController extends Controller
             $data = [
                 'status' => 500,
                 'Message' => "La recherche par $column",
-                'fournisseurs' => $response
+                'fournisseur' => $response
             ];
             return response()->json($data, 200);
         }
@@ -157,26 +172,26 @@ class FournisseurController extends Controller
             ];
             return response()->json($response, 404);
         }
-        $validators = Validator::make($request->all(), [
-            'code_fournisseur' => 'required',
-            'nom' => 'required',
-            'adresse' => 'required',
-            'tel' => 'required|numeric|digits:10',
-            'mail' => 'required|email',
-            'fax' => 'required|numeric|digits:10',
-        ]);
-        if ($validators->fails()) {
-            $response = [
-                "status" => 422,
-                "message" => "La validation de la requête a échoué.",
-                "errors" => $validators->errors()
-            ];
-            return response()->json($response, 422);
-        }
+        // $validators = Validator::make($request->all(), [
+        //     'code_fournisseur' => 'required',
+        //     'nom' => 'required',
+        //     'adresse' => 'required',
+        //     'tel' => 'required|numeric|digits:10',
+        //     'mail' => 'required|email',
+        //     'fax' => 'required|numeric|digits:10',
+        // ]);
+        // if ($validators->fails()) {
+        //     $response = [
+        //         "status" => 422,
+        //         "message" => "La validation de la requête a échoué.",
+        //         "errors" => $validators->errors()
+        //     ];
+        //     return response()->json($response, 422);
+        // }
         $existingFournisseur->update($request->all());
         $response = [
             "status" => 200,
-            "data" => $existingFournisseur
+            "fournisseur" => $existingFournisseur
         ];
         return response()->json($response, 200);
     }

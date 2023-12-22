@@ -14,20 +14,28 @@ class CommandeController extends Controller
      */
     public function index()
     {
-        $commandes = Commande::with('client', 'orderStatus')->get();
-        if ($commandes->count() > 0) {
+        $commandes = Commande::with('client', 'orderStatus','produits')->paginate(5);
+        if(!$commandes->isEmpty()){
+            $response = [
+                'perPage' => $commandes->perPage(),
+                'currentPage' => $commandes->currentPage(),
+                'totalCount' => $commandes->total(),
+                'totalPages' => $commandes->lastPage(),
+                'data' => $commandes->items(),
+            ];
             $data = [
-                'status' => "200",
-                'data' => $commandes
+                'status'=>"200",
+                'commandes'=>$response
             ];
             return response()->json($data, 200);
-        } else {
+        }else{
             return response()->json([
-                'status' => "404",
-                'message' => "Aucun enregistrement trouvé"
-            ], 404);
+                'status'=>"404",
+                'message'=>"Aucun enregistrement trouvé"
+            ],404);
         }
-    }
+        }
+
 
     /**
      * Show the form for creating a new resource.
@@ -132,10 +140,11 @@ class CommandeController extends Controller
             $existingCommande->update($request->all());
             //return redirect('/commandes')->with('Sucess','Data updated');
 
-            return response()->json([
-                'status' => 404,
-                'data' => "La commande est modifié avec succés"
-            ], 404);
+            $response = [
+                "status" => 200,
+                "data" =>$existingCommande
+            ];
+            return response()->json($response, 200);
         }
     }
 

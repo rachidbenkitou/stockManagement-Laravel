@@ -20,7 +20,7 @@ class CategorieSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('categories')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $numberOfRecords= 5;
+        $numberOfRecords= 40;
         $faker = Faker::create();
         for ($i = 0; $i < $numberOfRecords; $i++) {
             Categorie::create([

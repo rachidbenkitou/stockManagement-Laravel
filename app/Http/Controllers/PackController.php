@@ -15,7 +15,7 @@ class PackController extends Controller
      */
     public function index()
     {
-        $packes = Pack::paginate(10);
+        $packes = Pack::paginate(8);
         if(!$packes->isEmpty()){
             $response = [
                 'perPage' => $packes->perPage(),
@@ -26,7 +26,7 @@ class PackController extends Controller
             ];
             $data = [
                 'status'=>"200",
-                'data'=>$response
+                'packs'=>$response
             ];
             return response()->json($data, 200);
         }else{
@@ -86,7 +86,7 @@ class PackController extends Controller
      */
     public function show($column, $param)
     {
-        $existingPacks = Pack::where($column, 'LIKE', "%$param%")->paginate(10);
+        $existingPacks = Pack::where($column, 'LIKE', "%$param%")->paginate(8);
         if (!$existingPacks) {
             return response()->json([
                 'status' => 404,
@@ -103,7 +103,7 @@ class PackController extends Controller
             return response()->json([
                 'status' => 200,
                 'Message' => "La recherche par $column",
-                'data' => $response
+                'pack' => $response
             ], 200);
         }
     }
@@ -136,10 +136,11 @@ class PackController extends Controller
             ], 404);
         }else{
             $existingPack->update($request->all());
-            return response()->json([
-                'status' => 404,
-                'data' => "Le pack est modifié avec succés"
-            ], 404);
+            $response = [
+                "status" => 200,
+                "pack" =>$existingPack
+            ];
+            return response()->json($response, 200);
         }
     }
 
