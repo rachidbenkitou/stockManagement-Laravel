@@ -162,12 +162,12 @@ class PrduitController extends Controller
     {
         $produit = Produit::findOrFail($produitId);
         $fournisseur = Fournisseur::findOrFail($fournisseurId);
-    
+
         // Vérifier si la relation existe déjà
         $existingRelation = $produit->fournisseurs()->where('fournisseur_id', $fournisseur->id)->first();
-    
+
         $qte_entree = $request->input('qte_entree');
-    
+
         if ($existingRelation) {
             // Mise à jour de la quantité existante
             $existingRelation->pivot->update([
@@ -181,16 +181,16 @@ class PrduitController extends Controller
                 'date_entree' => now(),
             ]);
         }
-    
+
         // Mise à jour de la quantité totale du produit
         $produit->quantite += $qte_entree;
         $produit->save();
-    
+
         // Chargement des relations pour la réponse JSON
         $produit = $produit->load(['fournisseurs' => function ($query) {
             $query->withPivot('qte_entree');
         }, 'categorie']);
-    
+
               $data = [
                     'id' => $produit->id,
                     'nom' => $produit->nom,
@@ -212,10 +212,10 @@ class PrduitController extends Controller
                     'created_at' => $produit->created_at,
                     'updated_at' => $produit->updated_at,
                 ];
-    
+
         return response()->json(['produit' => $data], 200);
     }
-    
+
     /**
      * Display the specified resource.
      *

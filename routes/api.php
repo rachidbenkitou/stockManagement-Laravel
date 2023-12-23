@@ -82,16 +82,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('fournisseurs/{id}', [FournisseurController::class, 'destroy']);
 });
 
+
+Route::get('commandes', [CommandeController::class, 'index']);
+
+Route::delete('commandes/{id}', [CommandeController::class, 'destroy']);
+Route::put('commandes/{id}', [CommandeController::class, 'update']);
+
+Route::get('commandes/{id}', [CommandeController::class, 'show']);
+Route::get('commandes/{column}/{param}', [CommandeController::class, 'show1']);
+
+Route::post('commandes', [CommandeController::class, 'store']);
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('commandes', [CommandeController::class, 'index']);
 
-    Route::delete('commandes/{id}', [CommandeController::class, 'destroy']);
-    Route::put('commandes/{id}', [CommandeController::class, 'update']);
-
-    Route::get('commandes/{id}', [CommandeController::class, 'show']);
-    Route::get('commandes/{column}/{param}', [CommandeController::class, 'show1']);
-
-    Route::post('commandes', [CommandeController::class, 'store']);
 });
 
 Route::get('clients/{column1}/{param1}', [ClientController::class, 'show']);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Commande;
 use Illuminate\Http\Request;
+use stdClass;
 
 class CommandeController extends Controller
 {
@@ -53,6 +54,7 @@ class CommandeController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
+
     public function store(Request $request)
     {
         $commandeData = $request->only(['','date_commande', 'prix', 'client_id', 'orderStatus_id', 'discount_id']);
@@ -60,6 +62,51 @@ class CommandeController extends Controller
 
         if (!isset($commandeData['date_commande'])) {
             $commandeData['date_commande'] = now()->toDateString();
+        }
+
+        $productController = new PrduitController();
+        $productsOutOfStock = [];
+        $test = new stdClass();
+
+
+        // Iterate through each product in $produitsData
+        foreach ($produitsData as $produit) {
+            $productId = $produit['produit_id'];
+            $quantity = $produit['quantity'];
+
+            // Fetch the product by ID from the ProductController API
+            $product = $productController->show('id',$productId);
+
+
+            $jsonData = $product->getData();
+            $data = $jsonData->produits->data[0];
+
+
+
+
+            if (!$data || $data->quantite < $quantity) {
+                // Product does not exist or quantity is insufficient
+                $productsOutOfStock[] = $productId;
+
+            } else {
+                $newQuantity = $data->quantite - $quantity;
+                $data->quantite=$newQuantity;
+                // Convert stdClass to array
+                $dataArray = json_decode(json_encode($data), true);
+                // Now create the Request object
+                $request = new Request($dataArray);
+                $test=$productController->update($request, $productId);
+
+            }
+        }
+
+        if (!empty($productsOutOfStock)) {
+            // Some products are out of stock
+            return response()->json([
+                'status' => 400,
+                'message' => 'Some products are out of stock',
+                'out_of_stock_products' => $productsOutOfStock
+            ], 400);
         }
 
         $commandeSaved = Commande::create($commandeData);
