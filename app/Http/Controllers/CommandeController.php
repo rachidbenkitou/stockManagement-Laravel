@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Commande;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class CommandeController extends Controller
@@ -57,80 +58,89 @@ class CommandeController extends Controller
 
     public function store(Request $request)
     {
-        $commandeData = $request->only(['','date_commande', 'prix', 'client_id', 'orderStatus_id', 'discount_id']);
-        $produitsData = $request->input('produits', []);
+        try {
+            // Start the database transaction
+            DB::beginTransaction();
 
-        if (!isset($commandeData['date_commande'])) {
-            $commandeData['date_commande'] = now()->toDateString();
-        }
+            $commandeData = $request->only(['', 'date_commande', 'prix', 'client_id', 'orderStatus_id', 'discount_id']);
+            $produitsData = $request->input('produits', []);
 
-        $productController = new PrduitController();
-        $productsOutOfStock = [];
-        $test = new stdClass();
-
-
-        // Iterate through each product in $produitsData
-        foreach ($produitsData as $produit) {
-            $productId = $produit['produit_id'];
-            $quantity = $produit['quantity'];
-
-            // Fetch the product by ID from the ProductController API
-            $product = $productController->show('id',$productId);
-
-
-            $jsonData = $product->getData();
-            $data = $jsonData->produits->data[0];
-
-
-
-
-            if (!$data || $data->quantite < $quantity) {
-                // Product does not exist or quantity is insufficient
-                $productsOutOfStock[] = $productId;
-
-            } else {
-                $newQuantity = $data->quantite - $quantity;
-                $data->quantite=$newQuantity;
-                // Convert stdClass to array
-                $dataArray = json_decode(json_encode($data), true);
-                // Now create the Request object
-                $request = new Request($dataArray);
-                $test=$productController->update($request, $productId);
-
+            if (!isset($commandeData['date_commande'])) {
+                $commandeData['date_commande'] = now()->toDateString();
             }
-        }
 
-        if (!empty($productsOutOfStock)) {
-            // Some products are out of stock
-            return response()->json([
-                'status' => 400,
-                'message' => 'Some products are out of stock',
-                'out_of_stock_products' => $productsOutOfStock
-            ], 400);
-        }
+            $productController = new PrduitController();
+            $productsOutOfStock = [];
 
-        $commandeSaved = Commande::create($commandeData);
+            // Iterate through each product in $produitsData
+            foreach ($produitsData as $produit) {
+                $productId = $produit['produit_id'];
+                $quantity = $produit['quantity'];
 
-        if ($commandeSaved) {
-            $commandeId = $commandeSaved->id;
+                // Fetch the product by ID from the ProductController API
+                $product = $productController->show('id', $productId);
 
-            if (!empty($produitsData)) {
-                $commandeSaved->produits()->attach($produitsData, ['commande_id' => $commandeId]);
+                $jsonData = $product->getData();
+                $data = $jsonData->produits->data[0];
+
+                if (!$data || $data->quantite < $quantity) {
+                    // Product does not exist or quantity is insufficient
+                    $productsOutOfStock[] = $productId;
+                } else {
+                    $newQuantity = $data->quantite - $quantity;
+                    $data->quantite = $newQuantity;
+
+                    // Convert stdClass to array
+                    $dataArray = json_decode(json_encode($data), true);
+
+                    // Now create the Request object
+                    $request = new Request($dataArray);
+
+                    // Update the product within the transaction
+                    $test = $productController->update($request, $productId);
+                }
             }
-        }
 
-        if ($commandeSaved) {
+            if (!empty($productsOutOfStock)) {
+                // Some products are out of stock, rollback the transaction
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Some products are out of stock',
+                    'out_of_stock_products' => $productsOutOfStock
+                ], 400);
+            }
+
+            // Commit the transaction
+            DB::commit();
+
+            $commandeSaved = Commande::create($commandeData);
+
+            if ($commandeSaved) {
+                $commandeId = $commandeSaved->id;
+
+                if (!empty($produitsData)) {
+                    $commandeSaved->produits()->attach($produitsData, ['commande_id' => $commandeId]);
+                }
+            }
+
             return response()->json([
                 'status' => 200,
                 'commande' => $commandeSaved
             ], 200);
-        } else {
+        } catch (\Exception $e) {
+            // An error occurred, rollback the transaction
+            DB::rollBack();
+
             return response()->json([
                 'status' => 500,
-                'message' => 'Internal server error'
+                'message' => 'Internal server error',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
 
         /**
