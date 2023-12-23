@@ -28,6 +28,11 @@ class Commande extends Model
         return $this->belongsToMany(Produit::class, 'commande_produit')
             ->withPivot( 'produit_id', 'commande_id','quantity', 'price');
     }
+    public function packs()
+    {
+        return $this->belongsToMany(Pack::class, 'commande_packages')
+            ->withPivot( 'pack_id', 'commande_id', 'price');
+    }
     public function factures()
     {
         return $this->belongsTo(Facture::class);

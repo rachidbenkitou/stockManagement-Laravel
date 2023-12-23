@@ -84,10 +84,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('commandes', [CommandeController::class, 'index']);
+
     Route::delete('commandes/{id}', [CommandeController::class, 'destroy']);
     Route::put('commandes/{id}', [CommandeController::class, 'update']);
-    Route::post('commandes', [CommandeController::class, 'store']);
+
     Route::get('commandes/{id}', [CommandeController::class, 'show']);
+    Route::get('commandes/{column}/{param}', [CommandeController::class, 'show1']);
+
+    Route::post('commandes', [CommandeController::class, 'store']);
 });
 
 Route::get('clients/{column1}/{param1}', [ClientController::class, 'show']);
@@ -151,8 +155,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 //Route::post('discounts', [DiscountController::class, 'store']);
 //Route::put('discounts/{id}', [DiscountController::class, 'update']);
 //Route::delete('discounts/{id}', [DiscountController::class, 'destroy']);
+Route::get('packsCommandes', [PackageCommandeController::class, 'index']);
+Route::get('commandepacks', [PackageCommandeController::class, 'index2']);
+Route::get('commandepacks/{column}/{param}', [PackageCommandeController::class, 'show']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('packsCommandes', [PackageCommandeController::class, 'index']);
     Route::post('packsCommandes', [PackageCommandeController::class, 'store']);
+    Route::post('packsCommandes', [CommandeController::class, 'store1']);
+
+
 });

@@ -14,7 +14,7 @@ class CommandeController extends Controller
      */
     public function index()
     {
-        $commandes = Commande::with('client', 'orderStatus','produits')->paginate(5);
+        $commandes = Commande::whereHas('produits')->with('client', 'orderStatus','produits')->paginate(5);
         if(!$commandes->isEmpty()){
             $response = [
                 'perPage' => $commandes->perPage(),
@@ -86,6 +86,43 @@ class CommandeController extends Controller
     }
 
 
+        /**
+     * Store a newly created resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store1(Request $request)
+    {
+        $commandeData = $request->only(['','date_commande', 'prix', 'client_id', 'orderStatus_id', 'discount_id']);
+        $produitsData = $request->input('packs', []);
+
+        if (!isset($commandeData['date_commande'])) {
+            $commandeData['date_commande'] = now()->toDateString();
+        }
+
+        $commandeSaved = Commande::create($commandeData);
+
+        if ($commandeSaved) {
+            $commandeId = $commandeSaved->id;
+
+            if (!empty($produitsData)) {
+                $commandeSaved->packs()->attach($produitsData, ['commande_id' => $commandeId]);
+            }
+        }
+
+        if ($commandeSaved) {
+            return response()->json([
+                'status' => 200,
+                'commande' => $commandeSaved
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Internal server error'
+            ], 500);
+        }
+    }
 
 
     /**
@@ -106,6 +143,32 @@ class CommandeController extends Controller
             return response()->json([
                 'status' => 200,
                 'data' => $existingCommande
+            ], 200);
+        }
+    }
+    public function show1($column, $param){
+
+        $existingCommandes =Commande::whereHas('produits')->with('client', 'orderStatus','produits')
+            ->where($column, 'LIKE', "%$param%")
+            ->paginate(8);
+
+        if (!$existingCommandes) {
+            return response()->json([
+                'status' => 404,
+                'Message' => "Commande non trouvé."
+            ], 404);
+        } else {
+            $response = [
+                'perPage' => $existingCommandes->perPage(),
+                'currentPage' => $existingCommandes->currentPage(),
+                'totalCount' => $existingCommandes->total(),
+                'totalPages' => $existingCommandes->lastPage(),
+                'data' => $existingCommandes->items(),
+            ];
+            return response()->json([
+                'status' => 200,
+                'Message' => "La recherche par $column",
+                'commande' => $response
             ], 200);
         }
     }

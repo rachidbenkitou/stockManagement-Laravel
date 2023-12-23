@@ -8,16 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class CommandePackage extends Model
 {
     use HasFactory;
-    protected $fillable = ['pack_command_id', 'client_id', 'price'];
+    protected $fillable = ['pack_id', 'client_id', 'price'];
 
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
-    }
-
-    public function pack()
-    {
-        return $this->belongsTo(Pack::class);
-    }
+//    public function commande()
+//    {
+//        return $this->belongsTo(Commande::class);
+//    }
+//
+//    public function pack()
+//    {
+//        return $this->belongsTo(Pack::class);
+//    }
 
 }

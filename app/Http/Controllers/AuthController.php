@@ -36,7 +36,7 @@ class AuthController extends Controller
             'lastName'=>'required|string',
             'phone'=>'required|string',
             'adresse'=>'required|string',
-            'email'=>'required|string',
+            'email'=>'required|email',
             'password'=>'required|string'
         ]);
         $client = Client::create([

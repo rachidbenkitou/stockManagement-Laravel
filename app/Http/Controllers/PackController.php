@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Pack;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PackController extends Controller
 {
@@ -54,7 +55,15 @@ class PackController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {  $validator = Validator::make($request->all(), [
+        'codePack' => 'required',
+        'nbrProduits' => 'required',
+        'disponible' => 'required',
+        'prix' => 'required',
+    ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $existingPack= pack::where('codePack', $request->codePack)->first();
 
         if ($existingPack) {

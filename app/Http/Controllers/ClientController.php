@@ -145,7 +145,7 @@ class ClientController extends Controller
                 ->orWhere($column2, 'LIKE', "%$param2%");
         })->paginate(5);
 
-        if (!$existingClients->count()) {
+        if (!$existingClients) {
             return response()->json([
                 'status' => 404,
                 'message' => "Aucun client trouvé."

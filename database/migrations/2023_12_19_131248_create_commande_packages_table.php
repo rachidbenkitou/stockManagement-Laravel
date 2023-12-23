@@ -16,10 +16,10 @@ return new class extends Migration
         Schema::create('commande_packages', function (Blueprint $table) {
             $table->id();
             $table->double('price');
-            $table->unsignedBigInteger('pack_command_id');
-            $table->foreign('pack_command_id')->references('id')->on('packs')->onDelete('cascade');
-            $table->unsignedBigInteger('client_id');
-            $table->foreign('client_id')->references('id')->on('client')->onDelete('cascade');
+            $table->unsignedBigInteger('pack_id');
+            $table->foreign('pack_id')->references('id')->on('packs')->onDelete('cascade');
+            $table->unsignedBigInteger('commande_id');
+            $table->foreign('commande_id')->references('id')->on('commandes')->onDelete('cascade');
             $table->timestamps();
         });
     }
