@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('codePack')->unique();
             $table->integer('nbrProduits');
             $table->boolean('disponible');
+            $table->string('description');
+            $table->string('image');
             $table->integer('qte');
             $table->double('prix');
             $table->timestamps();

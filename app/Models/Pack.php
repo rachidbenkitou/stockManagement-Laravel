@@ -9,7 +9,7 @@ class Pack extends Model
 {
     use HasFactory;
     // Les colonnes pouvant être remplies massivement
-    protected $fillable = ['codePack','nbrProduits','disponible','qte','prix'];
+    protected $fillable = ['codePack','nbrProduits','disponible','description','image','qte','prix'];
     public function produits(){
         return $this->belongsToMany(Produit::class, 'produit_pack')->withPivot( 'produit_id','pack_id');
 
